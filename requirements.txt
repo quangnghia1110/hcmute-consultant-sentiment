@@ -1,0 +1,9 @@
+torch
+transformers
+pandas
+matplotlib
+streamlit
+plotly
+spacy
+scikit-learn
+tqdm 

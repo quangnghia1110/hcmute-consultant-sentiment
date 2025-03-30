@@ -1,0 +1,2 @@
+https://minhdang241.github.io/posts/2021-06-21-nlp_3_phobert_sentiment_analysis.html
+https://huggingface.co/datasets/uitnlp/vietnamese_students_feedback
