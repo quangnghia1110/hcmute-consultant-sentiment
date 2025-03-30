@@ -27,16 +27,40 @@ def download_and_extract(file_id, output_dir='checkpoints'):
     # Tạo URL download từ file id Google Drive
     url = f'https://drive.google.com/uc?id={file_id}'
     
-    # Tải file zip về
-    zip_path = 'checkpoints.zip'
-    gdown.download(url, zip_path, quiet=False)
+    # Tải file zip về thư mục tạm
+    temp_dir = 'temp'
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)
+    zip_path = os.path.join(temp_dir, 'checkpoints.zip')
     
-    # Giải nén file
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        zip_ref.extractall(output_dir)
+    try:
+        # Tải file zip
+        gdown.download(url, zip_path, quiet=False)
+        
+        # Giải nén file
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            # Lấy danh sách các file trong zip
+            file_list = zip_ref.namelist()
+            
+            # Giải nén từng file, bỏ qua thư mục gốc nếu có
+            for file in file_list:
+                # Lấy tên file không kèm đường dẫn thư mục
+                filename = os.path.basename(file)
+                # Chỉ giải nén nếu là file (không phải thư mục trống)
+                if filename:
+                    # Đọc nội dung file từ zip
+                    content = zip_ref.read(file)
+                    # Ghi ra file mới trong thư mục output
+                    output_path = os.path.join(output_dir, filename)
+                    with open(output_path, 'wb') as f:
+                        f.write(content)
     
-    # Xóa file zip tạm
-    os.remove(zip_path)
+    finally:
+        # Dọn dẹp: xóa file zip và thư mục tạm
+        if os.path.exists(zip_path):
+            os.remove(zip_path)
+        if os.path.exists(temp_dir):
+            os.rmdir(temp_dir)
     
     print(f'Đã tải và giải nén file vào thư mục {output_dir}')
 
