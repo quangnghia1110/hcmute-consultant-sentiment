@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import os
 import gdown
+import zipfile
 
 # Thiết lập tiêu đề trang
 st.set_page_config(page_title="Phân tích cảm xúc Tiếng Việt", layout="wide")
@@ -17,6 +18,27 @@ if 'current_tab' not in st.session_state:
 
 def handle_tab_change(tab_index):
     st.session_state.current_tab = tab_index
+
+def download_and_extract(file_id, output_dir='checkpoints'):
+    # Tạo thư mục output nếu chưa tồn tại
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+    # Tạo URL download từ file id Google Drive
+    url = f'https://drive.google.com/uc?id={file_id}'
+    
+    # Tải file zip về
+    zip_path = 'checkpoints.zip'
+    gdown.download(url, zip_path, quiet=False)
+    
+    # Giải nén file
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(output_dir)
+    
+    # Xóa file zip tạm
+    os.remove(zip_path)
+    
+    print(f'Đã tải và giải nén file vào thư mục {output_dir}')
 
 # Tải model và tokenizer
 @st.cache_resource
@@ -32,13 +54,12 @@ def load_model():
     # Kiểm tra nếu file checkpoint chưa tồn tại, tải xuống từ Google Drive
     if not os.path.exists(checkpoint_path):
         with st.spinner("Đang tải model từ Google Drive..."):
-            # ID của file trên Google Drive - thay thế bằng ID thực tế của bạn
-            file_id = "YOUR_GOOGLE_DRIVE_FILE_ID"  # Thay thế bằng ID thực tế
+            # ID của file trên Google Drive
+            file_id = "1EGhZW09uCNWE7HDyOIFFoNGzPEsAINS9"
             
             try:
-                # Tải file từ Google Drive
-                gdown.download(f"https://drive.google.com/uc?id={file_id}", 
-                               checkpoint_path, quiet=False)
+                # Tải và giải nén file từ Google Drive
+                download_and_extract(file_id, checkpoint_dir)
                 st.success("Đã tải model thành công!")
             except Exception as e:
                 st.error(f"Lỗi khi tải model: {str(e)}")
