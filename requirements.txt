@@ -6,4 +6,6 @@ streamlit
 plotly
 spacy
 scikit-learn
-tqdm 
+tqdm
+flask==2.3.3
+gunicorn==21.2.0 

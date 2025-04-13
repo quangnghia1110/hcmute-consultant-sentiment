@@ -9,6 +9,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
+# Install setuptools and wheel first
+RUN pip install --upgrade pip setuptools wheel
+
 # Install binary packages first
 RUN pip install --no-cache-dir numpy pandas scikit-learn
 
@@ -16,6 +19,8 @@ RUN pip install --no-cache-dir numpy pandas scikit-learn
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy model and app files
 COPY . .
 
-CMD ["python", "app.py"]
+# Run the app with gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"] 
