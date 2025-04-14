@@ -7,7 +7,7 @@ import os
 app = Flask(__name__)
 
 id2label = {0: "Tiêu cực", 1: "Trung tính", 2: "Tích cực"}
-CHECKPOINT_PATH = os.path.join(os.path.dirname(__file__), "model/phobert-sentiment-epoch=08-val_f1=0.9431.ckpt")
+CHECKPOINT_PATH = os.path.join(os.path.dirname(__file__), "model/phobert-sentiment-epochepoch=08-val_f1val_f1=0.9445.ckpt")
 model = None
 tokenizer = None
 

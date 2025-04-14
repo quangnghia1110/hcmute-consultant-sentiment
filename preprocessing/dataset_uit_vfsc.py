@@ -4,8 +4,8 @@ import glob
 import csv
 
 def process_txt_to_csv():
-    base_input_dir = os.path.join(os.path.dirname(__file__), 'UIT_VFSC')
-    base_output_dir = os.path.join(os.path.dirname(__file__), 'UIT_VFSC_PROCESSED')
+    base_input_dir = os.path.join(os.path.dirname(__file__), 'DATASET_UIT_VFSC')
+    base_output_dir = os.path.join(os.path.dirname(__file__), 'DATASET_UIT_VFSC_PROCESSED')
     
     os.makedirs(base_output_dir, exist_ok=True)
     
@@ -48,10 +48,10 @@ def process_txt_to_csv():
             print(f"No data found in {data_dir}")
 
 def process_existing_csvs():
-    output_dir = os.path.join(os.path.dirname(__file__), 'UIT_VFSC_PROCESSED')
+    output_dir = os.path.join(os.path.dirname(__file__), 'DATASET_UIT_VFSC_PROCESSED')
     os.makedirs(output_dir, exist_ok=True)
     
-    for csv_file in glob.glob(os.path.join(os.path.dirname(__file__), 'UIT_VFSC', '*.csv')):
+    for csv_file in glob.glob(os.path.join(os.path.dirname(__file__), 'DATASET_UIT_VFSC', '*.csv')):
         filename = os.path.basename(csv_file)
         output_path = os.path.join(output_dir, filename)
         
@@ -66,7 +66,7 @@ def process_existing_csvs():
             print(f"Saved processed file to {output_path}")
 
 def clean_processed_files():
-    processed_dir = os.path.join(os.path.dirname(__file__), 'UIT_VFSC_PROCESSED')
+    processed_dir = os.path.join(os.path.dirname(__file__), 'DATASET_UIT_VFSC_PROCESSED')
     
     for csv_file in glob.glob(os.path.join(processed_dir, '*.csv')):
         print(f"Cleaning {csv_file}...")
