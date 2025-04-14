@@ -50,5 +50,3 @@ tmp/
 # File hệ thống
 .DS_Store
 Thumbs.db
-
-model/*.ckpt
