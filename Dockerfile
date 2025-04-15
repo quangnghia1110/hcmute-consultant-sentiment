@@ -9,9 +9,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Install setuptools and wheel first
-RUN pip install --upgrade pip setuptools wheel
-
 # Install binary packages first
 RUN pip install --no-cache-dir numpy pandas scikit-learn
 
