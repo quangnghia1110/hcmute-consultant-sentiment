@@ -27,7 +27,7 @@ def init_model():
         
         # Tải trọng số từ checkpoint
         print(f"Đang tải trọng số từ {CHECKPOINT_PATH}...")
-        state_dict = torch.load(CHECKPOINT_PATH, map_location='cpu', weights_only=True)
+        state_dict = torch.load(CHECKPOINT_PATH, map_location='cpu', weights_only=False)
         if 'state_dict' in state_dict:
             state_dict = {k.replace('model.', ''): v for k, v in state_dict['state_dict'].items() 
                         if k.startswith('model.')}
