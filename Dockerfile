@@ -15,9 +15,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy code và mô hình
 COPY . .
-RUN python -c "from app import preload_model; preload_model()"
-# Kiểm tra lỗi khởi động
+
+# Kiểm tra import app
 RUN python -c "import app; print('App imported successfully')"
 
-# Chạy ứng dụng
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--timeout", "120", "app:app"]
+# Chạy ứng dụng với timeout dài hơn cho mô hình lớn
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--timeout", "300", "--workers", "1", "--threads", "2", "app:app"]
