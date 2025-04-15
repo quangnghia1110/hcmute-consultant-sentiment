@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy code và mô hình
 COPY . .
-
+RUN python -c "from app import preload_model; preload_model()"
 # Kiểm tra lỗi khởi động
 RUN python -c "import app; print('App imported successfully')"
 

@@ -6,3 +6,7 @@ services:
       - "5000:5000"
     environment:
       - NODE_ENV=production
+    deploy:
+      resources:
+        limits:
+          memory: 4G
