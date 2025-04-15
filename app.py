@@ -3,80 +3,74 @@ import torch
 import torch.nn.functional as F
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import os
-import time
+import tempfile
+import urllib.request
 
 app = Flask(__name__)
 
 id2label = {0: "Tiêu cực", 1: "Trung tính", 2: "Tích cực"}
-CHECKPOINT_PATH = os.path.join(os.path.dirname(__file__), "model/phobert-sentiment-epochepoch=08-val_f1val_f1=0.9445.ckpt")
+
 model = None
 tokenizer = None
-model_loaded = False  # Biến theo dõi trạng thái tải mô hình
+model_loaded = False
 
 def init_model():
     global model, tokenizer, model_loaded
-    print("Bắt đầu tải mô hình...")
-    start_time = time.time()
     try:
+        print("Bắt đầu tải mô hình...")
         # Tải tokenizer
         tokenizer = AutoTokenizer.from_pretrained("vinai/phobert-base")
-        print(f"Đã tải tokenizer sau {time.time() - start_time:.2f} giây")
+        print("Đã tải tokenizer")
         
-        # Tải mô hình base
+        # Tải mô hình cơ bản
         model = AutoModelForSequenceClassification.from_pretrained("vinai/phobert-base", num_labels=3)
-        print(f"Đã tải mô hình base sau {time.time() - start_time:.2f} giây")
+        print("Đã tải mô hình cơ bản")
         
-        # Kiểm tra nếu file checkpoint tồn tại
-        if os.path.exists(CHECKPOINT_PATH):
-            file_size = os.path.getsize(CHECKPOINT_PATH) / (1024 * 1024)  # MB
-            print(f"File checkpoint tồn tại, kích thước: {file_size:.2f} MB")
-            
-            # Nếu file quá nhỏ, có thể chỉ là file pointer của Git LFS
-            if file_size < 1:  # Nếu nhỏ hơn 1MB, có thể là file pointer
-                print("CẢNH BÁO: File checkpoint có kích thước quá nhỏ, có thể là file pointer của Git LFS!")
-        else:
-            print(f"CẢNH BÁO: Không tìm thấy file checkpoint tại {CHECKPOINT_PATH}")
+        # Tạo thư mục tạm phù hợp với Railway
+        temp_dir = os.path.join(os.getcwd(), "tmp")
+        os.makedirs(temp_dir, exist_ok=True)
         
-        # Thử tải checkpoint
         try:
-            print(f"Đang thử tải checkpoint...")
-            checkpoint = torch.load(CHECKPOINT_PATH, map_location='cpu', weights_only=False)
+            # Tải checkpoint từ Hugging Face
+            checkpoint_url = "https://huggingface.co/NgoQuangNghia111003/phobert/resolve/main/phobert.ckpt"
+            print(f"Đang tải checkpoint từ {checkpoint_url}")
             
-            # Kiểm tra cấu trúc checkpoint
+            temp_file = os.path.join(temp_dir, "checkpoint_temp.ckpt")
+            urllib.request.urlretrieve(checkpoint_url, temp_file)
+            
+            file_size = os.path.getsize(temp_file) / (1024 * 1024)
+            print(f"Đã tải checkpoint: {file_size:.2f} MB")
+            
+            # Tải trọng số
+            checkpoint = torch.load(temp_file, map_location='cpu', weights_only=False)
+            
             if 'state_dict' in checkpoint:
                 state_dict = {k.replace('model.', ''): v for k, v in checkpoint['state_dict'].items() 
-                            if k.startswith('model.')}
+                             if k.startswith('model.')}
                 model.load_state_dict(state_dict)
-                print("Đã tải checkpoint thành công!")
+                print("Đã tải trọng số thành công!")
                 model_loaded = True
             else:
-                print(f"Cấu trúc checkpoint không như mong đợi, các khóa có: {list(checkpoint.keys())}")
-                # Sử dụng mô hình cơ bản
+                print("Cấu trúc checkpoint không như mong đợi")
+                
+            # Xóa file tạm sau khi dùng
+            os.remove(temp_file)
+            
         except Exception as e:
-            print(f"Không thể tải checkpoint: {e}")
-            print("Sử dụng mô hình PhoBERT cơ bản")
+            print(f"Lỗi khi tải checkpoint: {e}")
+            print("Sử dụng mô hình cơ bản thay thế")
         
-        # Đặt mô hình ở chế độ đánh giá
+        # Đặt chế độ đánh giá
         model.eval()
         return True
+        
     except Exception as e:
-        print(f"Lỗi tổng thể khi khởi tạo mô hình: {e}")
+        print(f"Lỗi tổng thể: {e}")
         return False
-
-def get_model():
-    global model, tokenizer
-    if model is None:
-        success = init_model()
-        if not success:
-            raise Exception("Không thể khởi tạo mô hình")
-    return model, tokenizer
 
 def predict(text):
     if not text:
         return None
-    
-    # Lấy mô hình khi cần
-    model, tokenizer = get_model()
         
     text = ' '.join(text.strip().split())
     
@@ -92,14 +86,6 @@ def predict(text):
         predicted_class = 1
     
     return {"classify": id2label[predicted_class]}
-
-@app.route('/', methods=['GET'])
-def health_check():
-    return jsonify({
-        "status": "ok", 
-        "message": "Ứng dụng đang hoạt động",
-        "model_status": "Đã tải checkpoint" if model_loaded else "Sử dụng mô hình cơ bản"
-    })
 
 @app.route('/sentiment', methods=['GET'])
 def analyze_sentiment():
@@ -117,7 +103,6 @@ def analyze_sentiment():
             "status": "success", 
             "message": "Phân tích cảm xúc thành công",
             "data": result,
-            "model_type": "Đã huấn luyện" if model_loaded else "Cơ bản"
         })
     except Exception as e:
         return jsonify({
@@ -127,13 +112,8 @@ def analyze_sentiment():
         }), 500
 
 # Khởi tạo mô hình khi khởi động
-try:
-    init_model()
-except Exception as e:
-    print(f"Lỗi khi khởi tạo mô hình: {e}")
-    print("Ứng dụng sẽ tải mô hình khi có request đầu tiên")
+print("Khởi tạo ứng dụng...")
+init_model()
 
 if __name__ == "__main__":
-    if not init_model():
-        print("Cảnh báo: Mô hình chưa được khởi tạo")
-    app.run(host="0.0.0.0", port=5000, debug=False) 
+    app.run(host="0.0.0.0", port=5000, debug=False)
