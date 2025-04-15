@@ -21,3 +21,7 @@ RUN python -c "import app; print('App imported successfully')"
 
 # Chạy ứng dụng với timeout dài hơn cho mô hình lớn
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--timeout", "300", "--workers", "1", "--threads", "2", "app:app"]
+
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+CMD ["./entrypoint.sh"]
