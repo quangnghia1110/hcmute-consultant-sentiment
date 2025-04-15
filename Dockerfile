@@ -16,7 +16,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy code và mô hình
 COPY . .
 
-python -c "import app; print('App imported successfully')"
+# Kiểm tra lỗi khởi động
+RUN python -c "import app; print('App imported successfully')"
 
 # Chạy ứng dụng
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--timeout", "120", "app:app"]
