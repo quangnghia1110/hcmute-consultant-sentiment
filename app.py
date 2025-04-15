@@ -28,18 +28,16 @@ def init_model():
         # Thử tải với nhiều phương pháp khác nhau
         try:
             print(f"Đang tải trọng số từ {CHECKPOINT_PATH}...")
-            # Phương pháp 1: Tải như checkpoint Lightning thông thường
-            try:
-                ckpt = torch.load(CHECKPOINT_PATH, map_location='cpu')
-                if 'state_dict' in ckpt:
-                    state_dict = {k.replace('model.', ''): v for k, v in ckpt['state_dict'].items() 
-                                if k.startswith('model.')}
-                    model.load_state_dict(state_dict)
-                    print("Đã tải mô hình thành công (phương pháp 1)")
-                    model.eval()
-                    return True
-            except Exception as e1:
-                print(f"Phương pháp 1 thất bại: {e1}")
+            ckpt = torch.load(CHECKPOINT_PATH, map_location='cpu', weights_only=False)
+            if 'state_dict' in ckpt:
+                state_dict = {k.replace('model.', ''): v for k, v in ckpt['state_dict'].items() 
+                            if k.startswith('model.')}
+                model.load_state_dict(state_dict)
+                print("Đã tải mô hình thành công (phương pháp 1)")
+                model.eval()
+                return True
+        except Exception as e1:
+            print(f"Phương pháp 1 thất bại: {e1}")
                 
             # Phương pháp 2: Bỏ qua lỗi tải state_dict
             try:
