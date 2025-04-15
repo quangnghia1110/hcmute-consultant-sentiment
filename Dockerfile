@@ -1,24 +1,20 @@
-FROM python:3.9-slim
+FROM python:3.9-buster
 
 WORKDIR /app
 
-# Install system dependencies
+# Chỉ cài các gói hệ thống cần thiết
 RUN apt-get update && apt-get install -y \
-       build-essential \
-       python3-dev \
-       gcc \
-       g++ \
-       && rm -rf /var/lib/apt/lists/*
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install binary packages first
-RUN pip install --no-cache-dir numpy pandas scikit-learn
-
-# Then install remaining requirements
+# Cài đặt các gói thiết yếu
 COPY requirements.txt .
+RUN pip install --no-cache-dir -U pip
+RUN pip install --no-cache-dir spacy blis==0.7.9
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy model and app files
+# Copy code và mô hình
 COPY . .
 
-# Run the app with gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"] 
+# Chạy ứng dụng
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
